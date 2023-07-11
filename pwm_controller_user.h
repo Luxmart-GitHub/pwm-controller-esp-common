@@ -85,8 +85,6 @@ void setup()
 
   DBGLOG("setup");
 
-  setupWiFi();
-
   pwm_controller_setup();
 
   // Use led to indicate that the setup has been completed successfully.
