@@ -41,7 +41,9 @@ static void setupSerial()
     pwmSerial.begin(BAUD_RATE);
 }
 
-static void setupWiFi()
+#define WIFI_TIMEOUT 3000
+
+static bool setupWiFi()
 {
   // Connect to Wi-Fi
   WiFi.mode(WIFI_STA);
@@ -50,7 +52,10 @@ static void setupWiFi()
 
   pinMode(LED_BUILTIN, OUTPUT);
   auto state = LED_LOW;
-  while (WiFi.status() != WL_CONNECTED)
+
+  int timePassed = 0;
+
+  while (WiFi.status() != WL_CONNECTED && timePassed < WIFI_TIMEOUT)
   {
     digitalWrite(LED_BUILTIN, state);
     delay(500);
@@ -58,7 +63,11 @@ static void setupWiFi()
     digitalWrite(LED_BUILTIN, state);
     delay(500);
     state ^= LED_HIGH;
+
+    timePassed += 1000; // TODO: a more complex time solution
   }
+
+  return WiFi.status() == WL_CONNECTED;
 }
 
 #endif // PWM_CONTROLLER_ESP32_H
