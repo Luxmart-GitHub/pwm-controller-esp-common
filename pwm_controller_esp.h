@@ -41,30 +41,41 @@ static void setupSerial()
     pwmSerial.begin(BAUD_RATE);
 }
 
-#define WIFI_TIMEOUT 3000
+#define WIFI_TIMEOUT 10000
+
+IPAddress localIP;
+IPAddress localGateway;
+IPAddress subnet(255, 255, 0, 0);
+
+// Timer variables
+unsigned long previousMillis = 0;
+const long interval = 10000;  // interval to wait for Wi-Fi connection (milliseconds)
 
 static bool setupWiFi()
 {
   // Connect to Wi-Fi
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
   WiFi.setSleep(false);
 
-  pinMode(LED_BUILTIN, OUTPUT);
-  auto state = LED_LOW;
+  localIP.fromString(ip.c_str());
+  localGateway.fromString(gateway.c_str());
 
-  int timePassed = 0;
+  if (!WiFi.config(localIP, localGateway, subnet)){
+    DBGLOG("STA Failed to configure");
+    return false;
+  } 
 
-  while (WiFi.status() != WL_CONNECTED && timePassed < WIFI_TIMEOUT)
-  {
-    digitalWrite(LED_BUILTIN, state);
-    delay(500);
-    state ^= LED_HIGH;
-    digitalWrite(LED_BUILTIN, state);
-    delay(500);
-    state ^= LED_HIGH;
+  unsigned long currentMillis = millis();
+  previousMillis = currentMillis;
 
-    timePassed += 1000; // TODO: a more complex time solution
+  while(WiFi.status() != WL_CONNECTED) {
+    currentMillis = millis();
+    if (currentMillis - previousMillis >= interval) {
+      Serial.println("Failed to connect.");
+      return false;
+    }
+    
+    yield();
   }
 
   return WiFi.status() == WL_CONNECTED;
