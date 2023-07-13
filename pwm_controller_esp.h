@@ -63,7 +63,11 @@ static bool setupWiFi()
   if (!WiFi.config(localIP, localGateway, subnet)){
     DBGLOG("STA Failed to configure");
     return false;
-  } 
+  }
+
+  DBGLOG("Trying to connect to:");
+  DBGLOG(ssid.c_str());
+  WiFi.begin(ssid.c_str(), password.c_str());
 
   unsigned long currentMillis = millis();
   previousMillis = currentMillis;
